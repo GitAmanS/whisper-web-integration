@@ -5,10 +5,13 @@ import { UrlInput } from "./modal/UrlInput";
 import AudioPlayer from "./AudioPlayer";
 import { TranscribeButton } from "./TranscribeButton";
 import Constants from "../utils/Constants";
-import { Transcriber } from "../hooks/useTranscriber";
+// import { Transcriber } from "../hooks/useTranscriber";
 import Progress from "./Progress";
+// import AudioRecorder from "./AudioRecorder";
+// import { useAudioManager } from "../hooks/useAudioManager";
+
+import { useWhisper } from "../hooks/useWhisper";
 import AudioRecorder from "./AudioRecorder";
-import { useAudioManager } from "../hooks/useAudioManager";
 
 function titleCase(str: string) {
     str = str.toLowerCase();
@@ -139,7 +142,7 @@ export function AudioManager(props: { transcriber: any }) {
         setAudioDownloadUrl,
         resetAudio,
         setAudioData
-    } = useAudioManager(props.transcriber);
+    } = useWhisper(props.transcriber);
 
     const isTranscribing = props.transcriber.isBusy;
 
