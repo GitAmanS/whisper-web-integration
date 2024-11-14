@@ -14,7 +14,6 @@ const TranscriberInstance: React.FC<TranscriberInstanceProps> = ({ addTranscribe
 
   return (
     <div className="transcriber-instance">
-      {/* <h1>{id}</h1> */}
       <AudioManager transcriber={transcriber} addTranscriber={addTranscriber} removeTranscriber={removeTranscriber} id={id}/>
       <Transcript transcribedData={transcriber.output} />
     </div>

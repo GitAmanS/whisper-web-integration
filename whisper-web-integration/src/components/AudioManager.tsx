@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from "react";
-import axios from "axios";
+// AudioManager.tsx
+import React, {useState } from "react";
 import Modal from "./modal/Modal";
 import { UrlInput } from "./modal/UrlInput";
 import AudioPlayer from "./AudioPlayer";
@@ -15,6 +15,7 @@ import { useWhisper } from "../hooks/useWhisper";
 import AudioRecorder from "./AudioRecorder";
 import PlusIcon from "../icons/PlusIcon";
 import MinusIcon from "../icons/MinusIcon";
+import { Transcriber } from "../hooks/useTranscriber";
 
 function titleCase(str: string) {
     str = str.toLowerCase();
@@ -136,17 +137,18 @@ export enum AudioSource {
     RECORDING = "RECORDING",
 }
 
-export function AudioManager(props: { transcriber: any }) {
+export function AudioManager(props: {   transcriber: any;
+    addTranscriber: () => void;
+    removeTranscriber: (id: number) => void;
+    id: number;}) {
     const {
         audioData,
         progress,
         isAudioLoading,
         setAudioFromRecording,
         setAudioDownloadUrl,
-        resetAudio,
         setAudioData,
-        recordedBlob,
-    } = useWhisper(props.transcriber);
+    }: any = useWhisper(props.transcriber);
 
     const isTranscribing = props.transcriber.isBusy;
 
@@ -167,7 +169,7 @@ export function AudioManager(props: { transcriber: any }) {
                     <UrlTile
                         icon={<AnchorIcon />}
                         text={"From URL"}
-                        onUrlUpdate={(e) => {
+                        onUrlUpdate={(e: React.SetStateAction<string | undefined>) => {
                             props.transcriber.onInputChange();
                             setAudioDownloadUrl(e);
                         }}
@@ -176,7 +178,7 @@ export function AudioManager(props: { transcriber: any }) {
                     <FileTile
                         icon={<FolderIcon />}
                         text={"From file"}
-                        onFileUpdate={(decoded, blobUrl, mimeType) => {
+                        onFileUpdate={(decoded: any, blobUrl: any, mimeType: any) => {
                             props.transcriber.onInputChange();
                             setAudioData({
                                 buffer: decoded,
@@ -192,7 +194,7 @@ export function AudioManager(props: { transcriber: any }) {
                             <RecordTile
                                 icon={<MicrophoneIcon />}
                                 text={"Record"}
-                                setAudioData={(e) => {
+                                setAudioData={(e: Blob) => {
                                     props.transcriber.onInputChange();
                                     setAudioFromRecording(e);
                                 }}
@@ -201,11 +203,11 @@ export function AudioManager(props: { transcriber: any }) {
                     )}
                     <VerticalBar />
                     
-                    <Tile icon={<PlusIcon/>} onClick={handleAddTranscriber}/>
+                    <Tile icon={<PlusIcon />} onClick={handleAddTranscriber} text={undefined}/>
 
                     <VerticalBar />
                     
-                    <Tile icon={<MinusIcon/>} onClick={handleRemoveTranscriber}/>
+                    <Tile icon={<MinusIcon />} onClick={handleRemoveTranscriber} text={undefined}/>
                         
                     
                 </div>
@@ -232,9 +234,9 @@ export function AudioManager(props: { transcriber: any }) {
                     {props.transcriber.progressItems.length > 0 && (
                         <div className="relative z-10 p-4 w-full">
                             <label>Loading model files... (only run once)</label>
-                            {props.transcriber.progressItems.map((data) => (
+                            {props.transcriber.progressItems.map((data: { file: React.Key | null | undefined; progress: number; }) => (
                                 <div key={data.file}>
-                                    <Progress text={data.file} percentage={data.progress} />
+                                    <Progress text={data.file ? String(data.file) : ''} percentage={data.progress} />
                                 </div>
                             ))}
                         </div>
@@ -250,7 +252,8 @@ function SettingsTile(props: {
     className?: string;
     transcriber: Transcriber;
 }) {
-    const [showModal, setShowModal] = useState(false);
+    const [showModal, setShowModal] = useState<boolean>(false);
+
 
     const onClick = () => {
         setShowModal(true);
@@ -260,13 +263,13 @@ function SettingsTile(props: {
         setShowModal(false);
     };
 
-    const onSubmit = (url: string) => {
+    const onSubmit = () => {
         onClose();
     };
 
     return (
         <div className={props.className}>
-            <Tile icon={props.icon} onClick={onClick} />
+            <Tile icon={props.icon} onClick={onClick} text={undefined} />
             <SettingsModal
                 show={showModal}
                 onSubmit={onSubmit}
@@ -277,9 +280,14 @@ function SettingsTile(props: {
     );
 }
 
-function SettingsModal({ show, onSubmit, onClose, transcriber }) {
+function SettingsModal({ show, onClose, transcriber }: { 
+    show: boolean; 
+    onSubmit: (data: any) => void; 
+    onClose: () => void; 
+    transcriber: any; 
+}) {
     const names = Object.values(LANGUAGES).map(titleCase);
-    const models = {
+    const models: Record<string, number[]> = {
         'Xenova/whisper-tiny': [41, 152],
         'Xenova/whisper-base': [77, 291],
         'Xenova/whisper-small': [249],
@@ -287,6 +295,7 @@ function SettingsModal({ show, onSubmit, onClose, transcriber }) {
         'distil-whisper/distil-medium.en': [402],
         'distil-whisper/distil-large-v2': [767],
     };
+    
 
     return (
         <Modal
@@ -339,11 +348,11 @@ function VerticalBar() {
     return <div className='w-[1px] bg-slate-200'></div>;
 }
 
-function AudioDataBar({ progress }) {
+function AudioDataBar({ progress }: { progress: any }) {
     return <ProgressBar progress={`${Math.round(progress * 100)}%`} />;
 }
 
-function ProgressBar({ progress }) {
+function ProgressBar({ progress }: { progress: any }) {
     return (
         <div className='w-full bg-gray-200 rounded-full h-1 dark:bg-gray-700'>
             <div className='bg-blue-600 h-1 rounded-full transition-all' style={{ width: progress }}></div>
@@ -351,7 +360,7 @@ function ProgressBar({ progress }) {
     );
 }
 
-function UrlTile({ icon, text, onUrlUpdate }) {
+function UrlTile({ icon, text, onUrlUpdate }: { icon: any; text: any; onUrlUpdate: any }) {
     const [showModal, setShowModal] = useState(false);
 
     return (
@@ -362,7 +371,7 @@ function UrlTile({ icon, text, onUrlUpdate }) {
     );
 }
 
-function UrlModal({ show, onSubmit, onClose }) {
+function UrlModal({ show, onSubmit, onClose }: { show: any; onSubmit: any; onClose: any }) {
     const [url, setUrl] = useState(Constants.DEFAULT_AUDIO_URL);
 
     return (
@@ -377,20 +386,32 @@ function UrlModal({ show, onSubmit, onClose }) {
     );
 }
 
-function FileTile({ icon, text, onFileUpdate }) {
+function FileTile({ icon, text, onFileUpdate }: { icon: any; text: any; onFileUpdate: any }) {
     let elem = document.createElement("input");
     elem.type = "file";
     elem.oninput = (e) => {
-        let files = e.target.files;
-        if (!files) return;
+        const target = e.target as HTMLInputElement;
+        if (!target || !target.files) return; // Null check for target and files
+        let files = target.files;
         const urlObj = URL.createObjectURL(files[0]);
         const mimeType = files[0].type;
 
         const reader = new FileReader();
         reader.onload = async (e) => {
-            const decoded = await new AudioContext({ sampleRate: Constants.SAMPLING_RATE }).decodeAudioData(e.target.result);
-            onFileUpdate(decoded, urlObj, mimeType);
+            const target = e.target as FileReader; // Type assertion to FileReader
+            if (!target || !target.result) return; // Null check for target and result
+        
+            const result = target.result;
+        
+            // Ensure that result is an ArrayBuffer before calling decodeAudioData
+            if (result instanceof ArrayBuffer) {
+                const decoded = await new AudioContext({ sampleRate: Constants.SAMPLING_RATE }).decodeAudioData(result);
+                onFileUpdate(decoded, urlObj, mimeType);
+            } else {
+                console.error('File result is not an ArrayBuffer');
+            }
         };
+        
         reader.readAsArrayBuffer(files[0]);
         elem.value = "";
     };
@@ -398,7 +419,7 @@ function FileTile({ icon, text, onFileUpdate }) {
     return <Tile icon={icon} text={text} onClick={() => elem.click()} />;
 }
 
-function RecordTile({ icon, text, setAudioData }) {
+function RecordTile({ icon, text, setAudioData }: { icon: any; text: any; setAudioData: any }) {
     const [showModal, setShowModal] = useState(false);
 
     return (
@@ -409,8 +430,9 @@ function RecordTile({ icon, text, setAudioData }) {
     );
 }
 
-function RecordModal({ show, onSubmit, onClose }) {
-    const [audioBlob, setAudioBlob] = useState();
+function RecordModal({ show, onSubmit, onClose }: { show: any; onSubmit: any; onClose: any }) {
+    const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+
     return (
         <Modal
             show={show}
@@ -419,12 +441,12 @@ function RecordModal({ show, onSubmit, onClose }) {
             onClose={onClose}
             submitText="Load"
             submitEnabled={audioBlob !== undefined}
-            onSubmit={() => { onSubmit(audioBlob); setAudioBlob(undefined); onClose(); }}
+            onSubmit={() => { onSubmit(audioBlob); setAudioBlob(null); onClose(); }}
         />
     );
 }
 
-function Tile({ icon, text, onClick }) {
+function Tile({ icon, text, onClick }: { icon: any; text: any; onClick: any }) {
     return (
         <button onClick={onClick} className='flex items-center justify-center rounded-lg p-2 bg-blue text-slate-500 hover:text-indigo-600 hover:bg-indigo-50'>
             <div className='w-fit h-fit'>{icon}</div>

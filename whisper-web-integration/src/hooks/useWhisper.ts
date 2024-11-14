@@ -27,8 +27,9 @@ function getMimeType() {
 }
 
 export const useWhisper = (onRecordingComplete: (blob: Blob) => void) => {
-    const [recording, setRecording] = useState(false);
-    const [duration, setDuration] = useState(0);
+    const [recording, setRecording] = useState<boolean>(false); 
+    const [duration, setDuration] = useState<number>(0); 
+    
     const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
     const [audioData, setAudioData] = useState<{
         buffer: AudioBuffer;
@@ -162,14 +163,18 @@ export const useWhisper = (onRecordingComplete: (blob: Blob) => void) => {
                 try {
                     setAudioData(undefined);
                     setProgress(0);
-                    const { data, headers } = await axios.get(audioDownloadUrl, {
+    
+                    // Explicitly define the axios config with 'any' type to avoid the typing issues
+                    const config: any = {
                         signal: requestAbortController.signal,
                         responseType: 'arraybuffer',
-                        onDownloadProgress: (progressEvent) => {
+                        onDownloadProgress: (progressEvent: any) => {  // Use 'any' here for progressEvent
                             setProgress(progressEvent.progress || 0);
                         },
-                    });
-
+                    };
+    
+                    const { data, headers }: { data: any; headers: any } = await axios.get(audioDownloadUrl, config);
+    
                     let mimeType = headers['content-type'];
                     if (!mimeType || mimeType === 'audio/wave') {
                         mimeType = 'audio/wav';
