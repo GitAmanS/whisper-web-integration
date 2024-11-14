@@ -38,10 +38,10 @@ export const useWhisper = (onRecordingComplete: (blob: Blob) => void) => {
     } | undefined>(undefined);
     const [audioDownloadUrl, setAudioDownloadUrl] = useState<string | undefined>(undefined);
     const [progress, setProgress] = useState<number | undefined>(undefined);
-
     const streamRef = useRef<MediaStream | null>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<Blob[]>([]);
+    
 
     const isAudioLoading = progress !== undefined;
 
@@ -200,6 +200,7 @@ export const useWhisper = (onRecordingComplete: (blob: Blob) => void) => {
         duration,
         recordedBlob,
         startRecording,
+        setRecordedBlob,
         stopRecording,
         formatAudioTimestamp,
         audioData,
