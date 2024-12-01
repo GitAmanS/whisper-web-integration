@@ -164,8 +164,8 @@ export function AudioManager(props: {   transcriber: any;
 
     return (
         <>
-            <div className="flex flex-col justify-center items-center rounded-lg bg-white shadow-xl shadow-black/5 ring-1 ring-slate-700/10">
-                <div className="flex flex-row space-x-2 py-1 w-full px-2">
+            <div className="flex flex-col w-fit justify-center items-center rounded-t-lg  bg-white shadow-xl shadow-black/5 ring-1 ring-slate-700/10">
+                <div className="flex w-fit flex-row space-x-2  w-full px-2">
                     <UrlTile
                         icon={<AnchorIcon />}
                         text={"From URL"}
@@ -215,21 +215,35 @@ export function AudioManager(props: {   transcriber: any;
             </div>
             {audioData && (
                 <>
-                    <AudioPlayer audioUrl={audioData.url} mimeType={audioData.mimeType} />
+                    <div className="flex">
 
-                    <div className="relative w-full flex justify-center items-center">
-                        <TranscribeButton
-                            onClick={() => {
-                                props.transcriber.start(audioData.buffer);
-                            }}
-                            isModelLoading={props.transcriber.isModelLoading}
-                            isTranscribing={isTranscribing}
-                        />
+                        <AudioPlayer audioUrl={audioData.url} mimeType={audioData.mimeType} />
+
+                        <div className="flex flex-row pb-2 w-auto">
                         <SettingsTile
-                            className="absolute right-4"
+                            className=''
                             transcriber={props.transcriber}
                             icon={<SettingsIcon />}
                         />
+                        <TranscribeButton
+                                onClick={() => {
+                                    props.transcriber.start(audioData.buffer);
+                                }}
+                                isModelLoading={props.transcriber.isModelLoading}
+                                isTranscribing={isTranscribing}
+                            />
+
+                        </div>
+
+                    </div>
+
+                    <div className="relative w-full flex justify-center items-center">
+
+                        {/* <SettingsTile
+                            className=""
+                            transcriber={props.transcriber}
+                            icon={<SettingsIcon />}
+                        /> */}
                     </div>
                     {props.transcriber.progressItems.length > 0 && (
                         <div className="relative z-10 p-4 w-full">
@@ -269,7 +283,7 @@ function SettingsTile(props: {
 
     return (
         <div className={props.className}>
-            <Tile icon={props.icon} onClick={onClick} text={undefined} />
+            <Tile icon={props.icon} onClick={onClick} text={"Change Model"} />
             <SettingsModal
                 show={showModal}
                 onSubmit={onSubmit}
@@ -280,68 +294,141 @@ function SettingsTile(props: {
     );
 }
 
-function SettingsModal({ show, onClose, transcriber }: { 
-    show: boolean; 
-    onSubmit: (data: any) => void; 
-    onClose: () => void; 
-    transcriber: any; 
+function SettingsModal(props: {
+    show: boolean;
+    onSubmit: (url: string) => void;
+    onClose: () => void;
+    transcriber: Transcriber;
 }) {
     const names = Object.values(LANGUAGES).map(titleCase);
-    const models: Record<string, number[]> = {
+
+    const models = {
+        // Original checkpoints
         'Xenova/whisper-tiny': [41, 152],
         'Xenova/whisper-base': [77, 291],
         'Xenova/whisper-small': [249],
         'Xenova/whisper-medium': [776],
+
+        // Distil Whisper (English-only)
         'distil-whisper/distil-medium.en': [402],
         'distil-whisper/distil-large-v2': [767],
     };
-    
-
     return (
         <Modal
-            show={show}
-            title="Settings"
+            show={props.show}
+            title={"Settings"}
             content={
                 <>
                     <label>Select the model to use.</label>
+                    {console.log("model:",props.transcriber.model)}
+                    {console.log("langugage:", props.transcriber.language)}
+                    {console.log("subtask:", props.transcriber.subtask)}
+                    {console.log("quant:", props.transcriber.quantized)}
+                    {console.log("mult:", props.transcriber.multilingual)}
+                    
                     <select
-                        defaultValue={transcriber.model}
-                        onChange={(e) => transcriber.setModel(e.target.value)}
+                        className='mt-1 mb-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500'
+                        defaultValue={props.transcriber.model}
+                        onChange={(e) => {
+                            props.transcriber.setModel(e.target.value);
+                        }}
                     >
                         {Object.keys(models)
-                            .filter(key => transcriber.quantized || models[key].length === 2)
-                            .filter(key => !transcriber.multilingual || !key.startsWith('distil-whisper/'))
-                            .map(key => (
-                                <option key={key} value={key}>
-                                    {`${key}${transcriber.multilingual || key.startsWith('distil-whisper/') ? "" : ".en"} (${models[key][transcriber.quantized ? 0 : 1]}MB)`}
-                                </option>
+                            .filter(
+                                (key) =>
+                                    props.transcriber.quantized ||
+                                    // @ts-ignore
+                                    models[key].length == 2,
+                            )
+                            .filter(
+                                (key) => (
+                                    !props.transcriber.multilingual || !key.startsWith('distil-whisper/')
+                                )
+                            )
+                            .map((key) => (
+                                <option key={key} value={key}>{`${key}${
+                                    (props.transcriber.multilingual || key.startsWith('distil-whisper/')) ? "" : ".en"
+                                } (${
+                                    // @ts-ignore
+                                    models[key][
+                                        props.transcriber.quantized ? 0 : 1
+                                    ]
+                                }MB)`}</option>
                             ))}
                     </select>
-                    <div className='flex justify-between items-center'>
-                        <input type='checkbox' checked={transcriber.multilingual} onChange={(e) => transcriber.setMultilingual(e.target.checked)} /> Multilingual
-                        <input type='checkbox' checked={transcriber.quantized} onChange={(e) => transcriber.setQuantized(e.target.checked)} /> Quantized
+                    <div className='flex justify-between items-center mb-3 px-1'>
+                        <div className='flex'>
+                            <input
+                                id='multilingual'
+                                type='checkbox'
+                                checked={props.transcriber.multilingual}
+                                onChange={(e) => {
+                                    props.transcriber.setMultilingual(
+                                        e.target.checked,
+                                    );
+                                }}
+                            ></input>
+                            <label htmlFor={"multilingual"} className='ms-1'>
+                                Multilingual
+                            </label>
+                        </div>
+                        <div className='flex'>
+                            <input
+                                id='quantize'
+                                type='checkbox'
+                                checked={props.transcriber.quantized}
+                                onChange={(e) => {
+                                    props.transcriber.setQuantized(
+                                        e.target.checked,
+                                    );
+                                }}
+                            ></input>
+                            <label htmlFor={"quantize"} className='ms-1'>
+                                Quantized
+                            </label>
+                        </div>
                     </div>
-                    {transcriber.multilingual && (
+                    {props.transcriber.multilingual && (
                         <>
                             <label>Select the source language.</label>
-                            <select defaultValue={transcriber.language} onChange={(e) => transcriber.setLanguage(e.target.value)}>
+                            <select
+                                className='mt-1 mb-3 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500'
+                                defaultValue={props.transcriber.language}
+                                onChange={(e) => {
+                                    props.transcriber.setLanguage(
+                                        e.target.value,
+                                    );
+                                }}
+                            >
                                 {Object.keys(LANGUAGES).map((key, i) => (
-                                    <option key={key} value={key}>{names[i]}</option>
+                                    <option key={key} value={key}>
+                                        {names[i]}
+                                    </option>
                                 ))}
                             </select>
                             <label>Select the task to perform.</label>
-                            <select defaultValue={transcriber.subtask} onChange={(e) => transcriber.setSubtask(e.target.value)}>
-                                <option value="transcribe">Transcribe</option>
-                                <option value="translate">Translate (to English)</option>
+                            <select
+                                className='mt-1 mb-3 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500'
+                                defaultValue={props.transcriber.subtask}
+                                onChange={(e) => {
+                                    props.transcriber.setSubtask(
+                                        e.target.value,
+                                    );
+                                }}
+                            >
+                                <option value={"transcribe"}>Transcribe</option>
+                                <option value={"translate"}>
+                                    Translate (to English)
+                                </option>
                             </select>
                         </>
                     )}
                 </>
             }
-            onClose={onClose}
+            onClose={props.onClose}
             onSubmit={() => {}}
         />
-    );
+    ); 
 }
 
 function VerticalBar() {
@@ -354,8 +441,8 @@ function AudioDataBar({ progress }: { progress: any }) {
 
 function ProgressBar({ progress }: { progress: any }) {
     return (
-        <div className='w-full bg-gray-200 rounded-full h-1 dark:bg-gray-700'>
-            <div className='bg-blue-600 h-1 rounded-full transition-all' style={{ width: progress }}></div>
+        <div className='w-full bg-gray-200  h-1 dark:bg-gray-700'>
+            <div className='bg-blue-600 h-1  transition-all' style={{ width: progress }}></div>
         </div>
     );
 }
