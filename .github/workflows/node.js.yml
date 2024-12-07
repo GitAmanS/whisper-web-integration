@@ -1,0 +1,38 @@
+name: Build the React App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      # Step 3: Navigate into the folder and install dependencies
+      - name: Navigate and install dependencies
+        run: |
+          cd whisper-web-integration
+          npm install
+
+      # Step 4: Build the React app
+      - name: Build the React app
+        run: |
+          cd whisper-web-integration
+          npm run build
+
+      # Step 5: Copy build files to the root of the project
+      - name: Move build files to root
+        run: |
+          mv whisper-web-integration/build/* .
