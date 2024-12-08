@@ -22,18 +22,20 @@ jobs:
 
       # Step 3: Navigate into the folder and install dependencies
       - name: Navigate and install dependencies
+        working-directory: whisper-web-integration
         run: |
-          cd whisper-web-integration
           npm install
 
       # Step 4: Build the React app
       - name: Build the React app
+        working-directory: whisper-web-integration
         run: |
-          cd whisper-web-integration
           npx vite build
           pwd
+          ls -l
 
-      # Step 5: Copy build files to the root of the project
+      # Step 5: Move build files to root
       - name: Move build files to root
+        working-directory: whisper-web-integration
         run: |
-          mv dist/* ../*
+          mv dist/* ../
