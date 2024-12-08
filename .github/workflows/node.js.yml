@@ -39,3 +39,28 @@ jobs:
         working-directory: whisper-web-integration
         run: |
           mv dist/* ../
+
+      # Debug Step: List all files
+      - name: Debug dist folder
+        run: |
+          echo "Contents of parent directory:"
+          ls -l ../
+
+
+        # Upload build artifacts
+        - name: Upload build artifacts
+          uses: actions/upload-artifact@v2
+          with:
+            name: build-files
+            path: dist/
+
+
+      # Step 6: Commit and push the build files
+      - name: Commit and push build files
+        working-directory: whisper-web-integration
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add -f ../dist/ # Force-add the dist folder
+          git commit -m "Add build files to dist [skip ci]"
+          git push origin main # Replace 'main' with your target branch
