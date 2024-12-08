@@ -31,9 +31,9 @@ jobs:
         run: |
           cd whisper-web-integration
           npx vite build
-          ls -R
+          pwd
 
       # Step 5: Copy build files to the root of the project
       - name: Move build files to root
         run: |
-          mv whisper-web-integration/dist/* .
+          mv dist/* ../*
