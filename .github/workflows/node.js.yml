@@ -47,13 +47,6 @@ jobs:
           ls -l ../
 
 
-      # Upload build artifacts
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: build-files
-          path: dist/
-
 
       # Step 6: Commit and push the build files
       - name: Commit and push build files
