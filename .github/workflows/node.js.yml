@@ -38,7 +38,7 @@ jobs:
       - name: Move build files to root
         working-directory: whisper-web-integration
         run: |
-          cp dist/* ../
+          cp -r dist/* ../
 
       # Debug Step: List all files
       - name: Debug dist folder
