@@ -38,7 +38,7 @@ jobs:
       - name: Move build files to root
         working-directory: whisper-web-integration
         run: |
-          mv dist/* ../
+          cp dist/* ../
 
       # Debug Step: List all files
       - name: Debug dist folder
@@ -54,6 +54,6 @@ jobs:
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add -f ../dist/ # Force-add the dist folder
+          git add -f dist/
           git commit -m "Add build files to dist [skip ci]"
-          git push origin main # Replace 'main' with your target branch
+          git push origin main
