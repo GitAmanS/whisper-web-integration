@@ -30,7 +30,7 @@ jobs:
       - name: Build the React app
         run: |
           cd whisper-web-integration
-          npm vite build
+          npx vite build
 
       # Step 5: Copy build files to the root of the project
       - name: Move build files to root
